@@ -48,7 +48,7 @@ pipeline {
         stage('Create/Destroy the Eks Cluster ') {
             steps {
                dir('Eks-Install-folder') {
-                   sh 'terraform $action --auto-approve'
+                   sh 'terraform $action --auto-approve'          ## Create a parameter of choice with action variable and mention there apply or destroy then while executing build with parameter choose apply or destroy as per requirement
                }
                
             }
