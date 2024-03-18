@@ -1,0 +1,72 @@
+pipeline {
+    agent any
+    environment {
+        AWS_ACCESS_KEY = credentials('Aws_access_key_id')
+        AWS_SECRET_ACCESS_KEY = credentials ('Secret_access_key_id')
+        AWS_DEFAULT_REGION = "us-east-1"
+    }
+
+    stages {
+        stage('Git Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/tanaya-2023/Terraform-Jenkins-Eks.git'
+            }
+        }
+        stage('Initializing Terraform') {
+            steps {
+               dir('Eks-Install-folder') {
+                   sh 'terraform init'
+               }
+               
+            }
+        }
+        stage('Formatting Terraform') {
+            steps {
+               dir('Eks-Install-folder') {
+                   sh 'terraform fmt'
+               }
+               
+            }
+        }
+        stage('Validating Terraform') {
+            steps {
+               dir('Eks-Install-folder') {
+                   sh 'terraform validate'
+               }
+               
+            }
+        }
+        stage('Reviewing the  Terraform Plan ') {
+            steps {
+               dir('Eks-Install-folder') {
+                   sh 'terraform plan'
+               }
+               input(message: "Are you sure to Proceed?", ok: "Proceed")
+               
+            }
+        }
+        stage('Create/Destroy the Eks Cluster ') {
+            steps {
+               dir('Eks-Install-folder') {
+                   sh 'terraform $action --auto-approve'
+               }
+               
+            }
+        }
+        stage('Deploying nginx application through kubernetes ') {
+            steps {
+               dir('Eks-Install-folder/K8s-Manifest-files') {
+                   sh 'aws eks update-kubeconfig --name my-eks-cluster --region us-east-1'
+                   sh 'kubectl apply -f deployment.yml'
+                   sh 'kubectl apply -f service.yml'
+                   
+               }
+               
+            }
+        }
+    }
+
+
+
+}
+
